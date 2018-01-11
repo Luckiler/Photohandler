@@ -1,79 +1,99 @@
 <!doctype html>
 <html lang="en">
 
-    <head>
-        <!-- Required meta tags -->
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-        <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
-        <link rel="stylesheet" href="w3.css">        
-        <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
-        <link href="style.css" rel="stylesheet">
-        <title>Photohandler</title>
-    </head>
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <!--<link rel="stylesheet" href="w3.css">-->
+    <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
+    <link href="style.css" rel="stylesheet">
+    <title>Photohandler</title>
+</head>
 
-    <body>
-        <div class="w3-container w3-theme">
-            <img id="logo" src="http://artshot.com/ecommerce/wp-content/uploads/2016/09/Logo-Light-Galeria-1.png" alt="Galeria Artshot">
-        </div>
-        <div class="w3-container w3-center w3-padding-16">
-            <input class="inputfile" id="photo" type="file" accept="image/*" onchange="loadImage(this)">
-            <label for="photo" class="w3-buttton w3-hover-theme w3-border-theme" id="label">Escolha uma foto...</label>
-        </div>
-        <div class="w3-container w3-cell-row w3-center">
-            <div class="w3-cell w3-cell-middle w3-container" style="width: 300px">
-                <div class="w3-cell-row w3-section">
-                    <div class="w3-cell w3-cell-middle">
-                        <img src="icons/sun.svg" alt="Luminosidade" height="25px" width="25px">
-                    </div>
-                    <div class="w3-cell w3-cell-middle">
-                        <input type="range" min="-25" max="25" name="brightness" id="brightness" class="slider" onchange="filter()">
-                    </div>
-                </div>
-                <div class="w3-cell-row w3-section">
-                    <div class="w3-cell w3-cell-middle">
-                        <img src="icons/contrast-icon.svg" alt="Contraste" height="25px" width="25px">
-                    </div>
-                    <div class="w3-cell w3-cell-middle">
-                        <input type="range" min="-25" max="25" name="contrast" id="contrast" class="slider" onchange="filter()">
-                    </div>
-                </div>
-                <div class="w3-cell-row w3-section">
-                    <div class="w3-cell w3-cell-middle">
-                        <img src="icons/saturationP.svg" alt="Saturaçao" height="25px" width="25px">
-                    </div>
-                    <div class="w3-cell w3-cell-middle">
-                        <input type="range" min="-100" max="100" name="saturation" id="saturation" class="slider" onchange="filter()">
-                    </div>
-                </div>
+<body>
+    <div class="w3-container w3-theme">
+        <img id="logo" src="http://artshot.com/ecommerce/wp-content/uploads/2016/09/Logo-Light-Galeria-1.png" alt="Galeria Artshot">
+    </div>
+    <div class="w3-container w3-center w3-padding-16">
+        <input class="inputfile" id="photo" type="file" accept="image/*" onchange="loadImage(this)">
+        <label for="photo" class="w3-buttton w3-hover-theme w3-border-theme" id="label">Escolha uma foto...</label>
+    </div>
+    <div class="w3-container w3-center w3-padding-16">
+        <p>Tamanho maximo recomendado: <span id="maxSize"></span></p>
+        <p>Formato recomendado: <span id="format"></span></p>
+    </div>
+    <div class="w3-container w3-center">
+        <div class="">
+            <div class="w3-cell">
+                <div class="w3-container w3-green w3-margin">30x30cm</div>
             </div>
-            <div class="w3-cell w3-cell-middle">
-                <div class="w3-cell-middle" id="previewDiv">
-                    <canvas id="previewCanvas" width="500" height="500" class=""></canvas>
-                    <!--<img src="" alt="Preview Foto selectionada" id="preview" width="400" height="400">-->
-                </div>
-                <div id="info"></div>
+            <div class="w3-cell">
+                <div class="w3-container w3-green w3-margin">45x45cm</div>
             </div>
-            <div class="w3-cell w3-cell-middle">
-                <img src="icons/normal.svg" alt="Diptico Vertical" height="100" width="100" class="imageLayout" id="normal" onclick="setLayout('N')">
-                <img src="icons/dipticV.svg" alt="Diptico Vertical" height="100" width="100" class="imageLayout" id="dipV" onclick="setLayout('V', 1)" style="display: none;">
-                <img src="icons/dipticH.svg" alt="Diptico Horizontal" height="100" width="100" class="imageLayout" id="dipH" onclick="setLayout('H', 1)" style="display: none;">
-                <img src="icons/tripticV.svg" alt="Triptico Vertical" height="100" width="100" class="imageLayout" id="triV" onclick="setLayout('V', 2)" style="display: none;">
-                <img src="icons/tripticH.svg" alt="Triptico Horizontal" height="100" width="100" class="imageLayout" id="triH" onclick="setLayout('H', 2)" style="display: none;">
+            <div class="w3-cell">
+                <div class="w3-container w3-orange w3-margin">60x60cm</div>
+            </div>
+            <div class="w3-cell">
+                <div class="w3-container w3-red w3-margin">90x90cm</div>
             </div>
         </div>
-        <div>
-            <canvas id="filters" style="display: none;"></canvas>
-            <canvas id="resize" style="display: none;"></canvas>
+    </div>
+    <div class="w3-container w3-row w3-center">
+        <div class="w3-quarter w3-cell-middle w3-container">
+            <div class="w3-cell-row w3-section">
+                <div class="w3-cell w3-cell-middle">
+                    <img src="icons/sun.svg" alt="Luminosidade" height="25px" width="25px">
+                </div>
+                <div class="w3-cell w3-cell-middle">
+                    <input type="range" min="-25" max="25" name="brightness" id="brightness" class="slider" onchange="filter()">
+                </div>
+            </div>
+            <div class="w3-cell-row w3-section">
+                <div class="w3-cell w3-cell-middle">
+                    <img src="icons/contrast-icon.svg" alt="Contraste" height="25px" width="25px">
+                </div>
+                <div class="w3-cell w3-cell-middle">
+                    <input type="range" min="-25" max="25" name="contrast" id="contrast" class="slider" onchange="filter()">
+                </div>
+            </div>
+            <div class="w3-cell-row w3-section">
+                <div class="w3-cell w3-cell-middle">
+                    <img src="icons/saturationP.svg" alt="Saturaçao" height="25px" width="25px">
+                </div>
+                <div class="w3-cell w3-cell-middle">
+                    <input type="range" min="-100" max="100" name="saturation" id="saturation" class="slider" onchange="filter()">
+                </div>
+            </div>
         </div>
-        <div id="test">
+        <div class="w3-half w3-cell-middle">
+            <div class="w3-cell-middle" id="previewDiv">
+                <canvas id="previewCanvas" width="500" height="500" class=""></canvas>
+                <!--<img src="" alt="Preview Foto selectionada" id="preview" width="400" height="400">-->
+            </div>
         </div>
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jcanvas/20.1.4/min/jcanvas.min.js"></script>
-        <script src="scripts/tilt.jquery.min.js"></script>
-        <script src="scripts/caman.full.min.js"></script>
-        <script src="scripts/exif.js"></script>
-        <script src="scripts/script.js"></script>
-    </body>
+        <div class="w3-quarter w3-cell-middle">
+            <img src="icons/normal.svg" alt="Diptico Vertical" height="100" width="100" class="imageLayout" id="normal" onclick="setLayout('N')">
+            <img src="icons/dipticV.svg" alt="Diptico Vertical" height="100" width="100" class="imageLayout" id="dipV" onclick="setLayout('V', 1)" style="display: none;">
+            <img src="icons/dipticH.svg" alt="Diptico Horizontal" height="100" width="100" class="imageLayout" id="dipH" onclick="setLayout('H', 1)" style="display: none;">
+            <img src="icons/tripticV.svg" alt="Triptico Vertical" height="100" width="100" class="imageLayout" id="triV" onclick="setLayout('V', 2)" style="display: none;">
+            <img src="icons/tripticH.svg" alt="Triptico Horizontal" height="100" width="100" class="imageLayout" id="triH" onclick="setLayout('H', 2)" style="display: none;">
+        </div>
+    </div>
+    <div>
+        <canvas id="filters" style="display: none;"></canvas>
+        <canvas id="resize" style="display: none;"></canvas>
+    </div>
+    <div id="test">
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jcanvas/20.1.4/min/jcanvas.min.js"></script>
+    <script src="scripts/tilt.jquery.min.js"></script>
+    <script src="scripts/caman.full.min.js"></script>
+    <script src="scripts/exif.js"></script>
+    <script src="scripts/utilities.js"></script>
+    <script src="scripts/script.js"></script>
+</body>
 
 </html>
