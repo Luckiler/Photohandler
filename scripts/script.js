@@ -17,6 +17,7 @@ bckgr.src = 'images/bckgr.jpg';
 
 var orientation;
 var originalRatio; // The original Image ratio
+var closestRatio; // The closest standart format
 var maxWidth; // In mm
 var maxHeight; // In mm
 
@@ -31,7 +32,7 @@ const MM_TO_PX = 450 / 2000;
 
 // Handles the image loading into the memory
 function loadImage(input) {
-    if(FileReader && input.files && input.files.length) {
+    if (FileReader && input.files && input.files.length) {
         var fr = new FileReader();
         fr.onload = function() {
             sourcePhoto.src = fr.result;
@@ -48,32 +49,35 @@ function analysePhoto() {
 
     ratio = sourcePhoto.naturalWidth / sourcePhoto.naturalHeight;
 
-    if(ratio == 1)
+    if (ratio == 1)
         orientation = 'square';
-    else if(ratio < 1)
+    else if (ratio < 1) {
         orientation = 'portrait';
-    else
+        closestRatio = closestTo([1, 2 / 3, 1 / 2, 1 / 3], ratio);
+    } else {
         orientation = 'landscape';
+        closestRatio = closestTo([1, 3 / 2, 2, 3], ratio);
+    }
 
     maxHeight = Math.round((sourcePhoto.naturalHeight * INCH) / DPI);
     maxWidth = Math.round((sourcePhoto.naturalWidth * INCH) / DPI);
 
-    maxDivisionsV = maxWidth / 300;
-    maxDivisionsH = maxHeight / 300;
+    maxDivisionsV = maxWidth / 300 - 1;
+    maxDivisionsH = maxHeight / 300 - 1;
 
     updateGUI();
 }
 
 function updateGUI() {
-    document.getElementById('info').innerHTML = '<p>Maximo ' + maxWidth + 'x' + maxHeight + 'mm</p>';
-    
-    
+
+    $('#maxSize').text(maxWidth + 'x' + maxHeight + 'mm');
+
     console.log("Max V " + maxDivisionsV + "Max H " + maxDivisionsH);
 
-    if(maxDivisionsV < 1) {
+    if (maxDivisionsV < 1) {
         $('#dipV').css('display', 'none');
         $('#triV').css('display', 'none');
-    } else if(maxDivisionsV < 2) {
+    } else if (maxDivisionsV < 2) {
         $('#dipV').css('display', 'inline-block');
         $('#triV').css('display', 'none');
     } else {
@@ -81,15 +85,30 @@ function updateGUI() {
         $('#triV').css('display', 'inline-block');
     }
 
-    if(maxDivisionsH < 1) {
+    if (maxDivisionsH < 1) {
         $('#dipH').css('display', 'none');
         $('#triH').css('display', 'none');
-    } else if(maxDivisionsH < 2) {
+    } else if (maxDivisionsH < 2) {
         $('#dipH').css('display', 'inline-block');
         $('#triH').css('display', 'none');
     } else {
         $('#dipH').css('display', 'inline-block');
         $('#triH').css('display', 'inline-block');
+    }
+
+    var $formatText = $('#format');
+    switch (closestRatio) {
+        case 1:
+            $formatText.text('quadrado');
+            break;
+        case 3 / 2:
+            $formatText.text('retangular');
+            break;
+        case 2:
+            $formatText.text('semi panoramico');
+            break;
+        case 3:
+            $formatText.text('panoramico');
     }
 
     resize();
@@ -102,7 +121,7 @@ function resize() {
 
     $resizeCanvas.clearCanvas();
 
-    if(orientation == 'portrait') {
+    if (orientation == 'portrait') {
         resizeCanvas.width = MAX_PREVIEW_SIZE * ratio;
         resizeCanvas.height = MAX_PREVIEW_SIZE;
         $resizeCanvas
@@ -114,7 +133,7 @@ function resize() {
                 height: MAX_PREVIEW_SIZE,
                 fromCenter: false
             });
-    } else if(orientation == 'landscape') {
+    } else if (orientation == 'landscape') {
         resizeCanvas.width = MAX_PREVIEW_SIZE;
         resizeCanvas.height = MAX_PREVIEW_SIZE / ratio;
         $resizeCanvas
@@ -170,23 +189,25 @@ function drawPreview() {
     $previewCanvas
         .drawImage({
             source: 'images/bckgr.jpg',
-            x: 0, y: 0,
+            x: 0,
+            y: 0,
             fromCenter: false
         })
         .drawImage({
             source: editedPhoto.src,
-            x: 250, y: 175,
+            x: 250,
+            y: 175,
             width: maxWidth * MM_TO_PX,
             height: maxHeight * MM_TO_PX,
-            shadowColor: '#1a1a1a', 
+            shadowColor: '#1a1a1a',
             shadowBlur: 3,
             shadowY: 2
         });
-        console.log("width: " + maxWidth * MM_TO_PX + "height: " + maxHeight * MM_TO_PX);
+    console.log("width: " + maxWidth * MM_TO_PX + "height: " + maxHeight * MM_TO_PX);
 }
 
 function setLayout(orientation, numberOfDivs = 0) {
-    if(orientation == 'V') {
+    if (orientation == 'V') {
         // if(maxWidth / 2 > )
     }
 }
