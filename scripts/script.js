@@ -72,7 +72,7 @@ function updateGUI() {
 
     $('#maxSize').text(maxWidth + 'x' + maxHeight + 'mm');
 
-    console.log("Max V " + maxDivisionsV + "Max H " + maxDivisionsH);
+    console.log("Max V " + maxDivisionsV + " Max H " + maxDivisionsH);
 
     if (maxDivisionsV < 1) {
         $('#dipV').css('display', 'none');
@@ -110,7 +110,7 @@ function updateGUI() {
         case 3:
             $formatText.text('Panoramico');
             break;
-        case 2/3:
+        case 2 / 3:
             $formatText.text('Retrato');
             break;
     }
@@ -122,7 +122,62 @@ function updateGUI() {
 function recomendSize() {
     $rz = $('#recommendedSizes');
     $rz.empty();
-    
+
+    for (var s of ['EDIÇAO ESPECIAL', 'P', 'M', 'G', 'GG', 'COLECIONADOR']) {
+        var color, w, h, display;
+        display = true;
+
+        switch (s) {
+            case 'EDIÇAO ESPECIAL':
+                h = 30;
+                break;
+            case 'P':
+                h = 45;
+                break;
+            case 'M':
+                h = 60;
+                break;
+            case 'G':
+                if (closestRatio == 2 / 3 || closestRatio == 3 / 2)
+                    h = 80;
+                else
+                    h = 90;
+                break;
+            case 'GG':
+                if (closestRatio != 2 / 3 || closestRatio != 3 / 2)
+                    display = false;
+                h = 100;
+                break;
+            case 'COLECIONADOR':
+                if (closestRatio == 2 / 3 || closestRatio == 3 / 2 || closestRatio == 1)
+                    h = 120;
+                else if (closestRatio == 1 / 2 || closestRatio == 2)
+                    h = 105;
+                else if (closestRatio == 1 / 3 || closestRatio == 3)
+                    h = 70;
+                break;
+        }
+
+        console.log(maxWidth + ' ' + maxHeight);
+
+        if (display) {
+            if (closestRatio >= 1) {
+                w = h * closestRatio;
+                if (maxHeight / 10 >= h)
+                    color = 'green';
+                else
+                    color = 'red';
+                $rz.append('<div class="w3-cell"><div class = "w3-container w3-margin w3-' + color + '">' + s + ' ' + w + 'x' + h + 'cm</div></div>');
+            } else {
+                w = h / closestRatio;
+                if (maxWidth / 10 >= h)
+                    color = 'green';
+                else
+                    color = 'red';
+                $rz.append('<div class="w3-cell"><div class = "w3-container w3-margin w3-' + color + '">' + s + ' ' + h + 'x' + w + 'cm</div></div>');
+            }
+        }
+    }
 }
 
 // Resizes the photo for faster preview rendering
@@ -214,7 +269,6 @@ function drawPreview() {
             shadowBlur: 3,
             shadowY: 2
         });
-    console.log("width: " + maxWidth * MM_TO_PX + "height: " + maxHeight * MM_TO_PX);
 }
 
 function setLayout(orientation, numberOfDivs = 0) {
