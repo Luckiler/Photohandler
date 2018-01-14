@@ -99,19 +99,30 @@ function updateGUI() {
     var $formatText = $('#format');
     switch (closestRatio) {
         case 1:
-            $formatText.text('quadrado');
+            $formatText.text('Quadrado');
             break;
         case 3 / 2:
-            $formatText.text('retangular');
+            $formatText.text('Retangular');
             break;
         case 2:
-            $formatText.text('semi panoramico');
+            $formatText.text('Semi Panoramico');
             break;
         case 3:
-            $formatText.text('panoramico');
+            $formatText.text('Panoramico');
+            break;
+        case 2/3:
+            $formatText.text('Retrato');
+            break;
     }
 
+    recomendSize();
     resize();
+}
+
+function recomendSize() {
+    $rz = $('#recommendedSizes');
+    $rz.empty();
+    
 }
 
 // Resizes the photo for faster preview rendering
