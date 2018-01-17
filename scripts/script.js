@@ -9,21 +9,23 @@ var $brightnessSlider = $('#brightness');
 var $contrastSlider = $('#contrast');
 var $saturationSlider = $('#saturation');
 
-var sourcePhoto = new Image();
 var editedPhoto = new Image();
 var bckgr = new Image();
 bckgr.src = 'images/bckgr.jpg';
 // ctx.drawImage(bckgr, 0, 0, 700, 525);
 
-var orientation;
-var originalRatio; // The original Image ratio
-var closestRatio; // The closest standart format
-var maxWidth; // In mm
-var maxHeight; // In mm
+var originalPhoto = {
+    photo: new Image(), // As HTMLImageElement object
+    orientation: 'none',
+    ratio: 0,
+    closestRatio: 0, // The closest standart format
+    maxWidth: 0, // In mm
+    maxHeight: 0, // In mm
+    maxDivisionsV: -1,
+    maxDivisionsH: -1
+};
 
 var currentLayout = 'normal';
-var maxDivisionsV;
-var maxDivisionsH;
 
 const INCH = 25.4; // In mm
 const DPI = 300;
@@ -35,8 +37,8 @@ function loadImage(input) {
     if (FileReader && input.files && input.files.length) {
         var fr = new FileReader();
         fr.onload = function() {
-            sourcePhoto.src = fr.result;
-            $(sourcePhoto).one('load', analysePhoto);
+            originalPhoto.photo.src = fr.result;
+            $(originalPhoto.photo).one('load', analysePhoto);
         };
         fr.readAsDataURL(input.files[0]);
     }
@@ -44,40 +46,36 @@ function loadImage(input) {
 
 // Analyses the photo (dimentions, orientation, etc...)
 function analysePhoto() {
+    originalPhoto.ratio = originalPhoto.photo.naturalWidth / originalPhoto.photo.naturalHeight;
+    var r = originalPhoto.ratio;
 
-    console.log('Analysing image');
-
-    ratio = sourcePhoto.naturalWidth / sourcePhoto.naturalHeight;
-
-    if (ratio == 1)
-        orientation = 'square';
-    else if (ratio < 1) {
-        orientation = 'portrait';
-        closestRatio = closestTo([1, 2 / 3, 1 / 2, 1 / 3], ratio);
+    if (r == 1)
+        originalPhoto.orientation = 'square';
+    else if (r < 1) {
+        originalPhoto.orientation = 'portrait';
+        originalPhoto.closestRatio = closestTo([1, 2 / 3, 1 / 2, 1 / 3], originalPhoto.ratio);
     } else {
-        orientation = 'landscape';
-        closestRatio = closestTo([1, 3 / 2, 2, 3], ratio);
+        originalPhoto.orientation = 'landscape';
+        originalPhoto.closestRatio = closestTo([1, 3 / 2, 2, 3], originalPhoto.ratio);
     }
 
-    maxHeight = Math.round((sourcePhoto.naturalHeight * INCH) / DPI);
-    maxWidth = Math.round((sourcePhoto.naturalWidth * INCH) / DPI);
+    originalPhoto.maxHeight = Math.round((originalPhoto.photo.naturalHeight * INCH) / DPI);
+    originalPhoto.maxWidth = Math.round((originalPhoto.photo.naturalWidth * INCH) / DPI);
 
-    maxDivisionsV = maxWidth / 300 - 1;
-    maxDivisionsH = maxHeight / 300 - 1;
+    originalPhoto.maxDivisionsV = originalPhoto.maxWidth / 300 - 1;
+    originalPhoto.maxDivisionsH = originalPhoto.maxHeight / 300 - 1;
 
     updateGUI();
 }
 
 function updateGUI() {
 
-    $('#maxSize').text(maxWidth + 'x' + maxHeight + 'mm');
+    $('#maxSize').text(originalPhoto.maxWidth + 'x' + originalPhoto.maxHeight + 'mm');
 
-    console.log("Max V " + maxDivisionsV + " Max H " + maxDivisionsH);
-
-    if (maxDivisionsV < 1) {
+    if (originalPhoto.maxDivisionsV < 1) {
         $('#dipV').css('display', 'none');
         $('#triV').css('display', 'none');
-    } else if (maxDivisionsV < 2) {
+    } else if (originalPhoto.maxDivisionsV < 2) {
         $('#dipV').css('display', 'inline-block');
         $('#triV').css('display', 'none');
     } else {
@@ -85,10 +83,10 @@ function updateGUI() {
         $('#triV').css('display', 'inline-block');
     }
 
-    if (maxDivisionsH < 1) {
+    if (originalPhoto.maxDivisionsH < 1) {
         $('#dipH').css('display', 'none');
         $('#triH').css('display', 'none');
-    } else if (maxDivisionsH < 2) {
+    } else if (originalPhoto.maxDivisionsH < 2) {
         $('#dipH').css('display', 'inline-block');
         $('#triH').css('display', 'none');
     } else {
@@ -97,7 +95,7 @@ function updateGUI() {
     }
 
     var $formatText = $('#format');
-    switch (closestRatio) {
+    switch (originalPhoto.closestRatio) {
         case 1:
             $formatText.text('Quadrado');
             break;
@@ -138,40 +136,42 @@ function recomendSize() {
                 h = 60;
                 break;
             case 'G':
-                if (closestRatio == 2 / 3 || closestRatio == 3 / 2)
+                if (originalPhoto.closestRatio == 2 / 3 || originalPhoto.closestRatio == 3 / 2)
                     h = 80;
                 else
                     h = 90;
                 break;
             case 'GG':
-                if (closestRatio != 2 / 3 || closestRatio != 3 / 2)
+                if (originalPhoto.closestRatio != 2 / 3 || originalPhoto.closestRatio != 3 / 2)
                     display = false;
                 h = 100;
                 break;
             case 'COLECIONADOR':
-                if (closestRatio == 2 / 3 || closestRatio == 3 / 2 || closestRatio == 1)
+                if (originalPhoto.closestRatio == 2 / 3 || originalPhoto.closestRatio == 3 / 2 || originalPhoto.closestRatio == 1)
                     h = 120;
-                else if (closestRatio == 1 / 2 || closestRatio == 2)
+                else if (originalPhoto.closestRatio == 1 / 2 || originalPhoto.closestRatio == 2)
                     h = 105;
-                else if (closestRatio == 1 / 3 || closestRatio == 3)
+                else if (originalPhoto.closestRatio == 1 / 3 || originalPhoto.closestRatio == 3)
                     h = 70;
                 break;
         }
 
-        console.log(maxWidth + ' ' + maxHeight);
-
         if (display) {
-            if (closestRatio >= 1) {
-                w = h * closestRatio;
-                if (maxHeight / 10 >= h)
+            if (originalPhoto.closestRatio >= 1) {
+                w = h * originalPhoto.closestRatio;
+                if (originalPhoto.maxHeight / 10 >= h && originalPhoto.maxWidth / 10 >= w)
                     color = 'green';
+                else if (originalPhoto.maxHeight / 10 >= h || originalPhoto.maxWidth / 10 >= w)
+                    color = 'orange';
                 else
                     color = 'red';
                 $rz.append('<div class="w3-cell"><div class = "w3-container w3-margin w3-' + color + '">' + s + ' ' + w + 'x' + h + 'cm</div></div>');
             } else {
-                w = h / closestRatio;
-                if (maxWidth / 10 >= h)
+                w = h / originalPhoto.closestRatio;
+                if (originalPhoto.maxWidth / 10 >= h && originalPhoto.maxHeight / 10 >= w)
                     color = 'green';
+                else if (originalPhoto.maxWidth / 10 >= h || originalPhoto.maxHeight / 10 >= w)
+                    color = 'orange';
                 else
                     color = 'red';
                 $rz.append('<div class="w3-cell"><div class = "w3-container w3-margin w3-' + color + '">' + s + ' ' + h + 'x' + w + 'cm</div></div>');
@@ -187,28 +187,28 @@ function resize() {
 
     $resizeCanvas.clearCanvas();
 
-    if (orientation == 'portrait') {
-        resizeCanvas.width = MAX_PREVIEW_SIZE * ratio;
+    if (originalPhoto.orientation == 'portrait') {
+        resizeCanvas.width = MAX_PREVIEW_SIZE * originalPhoto.ratio;
         resizeCanvas.height = MAX_PREVIEW_SIZE;
         $resizeCanvas
             .drawImage({
-                source: sourcePhoto.src,
+                source: originalPhoto.photo.src,
                 x: 0,
                 y: 0,
-                width: MAX_PREVIEW_SIZE * ratio,
+                width: MAX_PREVIEW_SIZE * originalPhoto.ratio,
                 height: MAX_PREVIEW_SIZE,
                 fromCenter: false
             });
-    } else if (orientation == 'landscape') {
+    } else if (originalPhoto.orientation == 'landscape') {
         resizeCanvas.width = MAX_PREVIEW_SIZE;
-        resizeCanvas.height = MAX_PREVIEW_SIZE / ratio;
+        resizeCanvas.height = MAX_PREVIEW_SIZE / originalPhoto.ratio;
         $resizeCanvas
             .drawImage({
-                source: sourcePhoto.src,
+                source: originalPhoto.photo.src,
                 x: 0,
                 y: 0,
                 width: MAX_PREVIEW_SIZE,
-                height: MAX_PREVIEW_SIZE / ratio,
+                height: MAX_PREVIEW_SIZE / originalPhoto.ratio,
                 fromCenter: false
             });
     } else {
@@ -216,7 +216,7 @@ function resize() {
         resizeCanvas.height = MAX_PREVIEW_SIZE;
         $resizeCanvas
             .drawImage({
-                source: sourcePhoto.src,
+                source: originalPhoto.photo.src,
                 x: 0,
                 y: 0,
                 width: MAX_PREVIEW_SIZE,
@@ -263,8 +263,8 @@ function drawPreview() {
             source: editedPhoto.src,
             x: 250,
             y: 175,
-            width: maxWidth * MM_TO_PX,
-            height: maxHeight * MM_TO_PX,
+            width: originalPhoto.maxWidth * MM_TO_PX,
+            height: originalPhoto.maxHeight * MM_TO_PX,
             shadowColor: '#1a1a1a',
             shadowBlur: 3,
             shadowY: 2
