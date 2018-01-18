@@ -1,9 +1,5 @@
 var filters = document.getElementById('filters');
 // var ctx = canvas.getContext('2d');
-var preview = document.getElementById('preview');
-var $preview = $('#preview');
-var $previewCanvas = $('#previewCanvas');
-// preview.addEventListener('load', analysePhoto, false);
 
 var $brightnessSlider = $('#brightness');
 var $contrastSlider = $('#contrast');
@@ -25,7 +21,22 @@ var originalPhoto = {
     maxDivisionsH: -1
 };
 
-var currentLayout = 'normal';
+var preview = {
+    currentLayout: 'normal',
+    preview: document.getElementById('preview'),
+    $preview: $('#preview'),
+    $canvas: $('#previewCanvas'),
+
+    photoPositionX: 250,
+    photoPositionY: 175,
+
+    layout: {
+        orientation: 'none',
+        divs: 0
+    }
+};
+
+var $smallPhoto = $('#smallPhoto');
 
 const INCH = 25.4; // In mm
 const DPI = 300;
@@ -49,7 +60,7 @@ function analysePhoto() {
     originalPhoto.ratio = originalPhoto.photo.naturalWidth / originalPhoto.photo.naturalHeight;
     var r = originalPhoto.ratio;
 
-    if (r == 1)
+    if (r === 1)
         originalPhoto.orientation = 'square';
     else if (r < 1) {
         originalPhoto.orientation = 'portrait';
@@ -69,6 +80,8 @@ function analysePhoto() {
 }
 
 function updateGUI() {
+
+    setLayout('N', 0);
 
     $('#maxSize').text(originalPhoto.maxWidth + 'x' + originalPhoto.maxHeight + 'mm');
 
@@ -136,22 +149,22 @@ function recomendSize() {
                 h = 60;
                 break;
             case 'G':
-                if (originalPhoto.closestRatio == 2 / 3 || originalPhoto.closestRatio == 3 / 2)
+                if (originalPhoto.closestRatio === 2 / 3 || originalPhoto.closestRatio === 3 / 2)
                     h = 80;
                 else
                     h = 90;
                 break;
             case 'GG':
-                if (originalPhoto.closestRatio != 2 / 3 || originalPhoto.closestRatio != 3 / 2)
+                if (originalPhoto.closestRatio !== 2 / 3 || originalPhoto.closestRatio !== 3 / 2)
                     display = false;
                 h = 100;
                 break;
             case 'COLECIONADOR':
-                if (originalPhoto.closestRatio == 2 / 3 || originalPhoto.closestRatio == 3 / 2 || originalPhoto.closestRatio == 1)
+                if (originalPhoto.closestRatio === 2 / 3 || originalPhoto.closestRatio === 3 / 2 || originalPhoto.closestRatio === 1)
                     h = 120;
-                else if (originalPhoto.closestRatio == 1 / 2 || originalPhoto.closestRatio == 2)
+                else if (originalPhoto.closestRatio === 1 / 2 || originalPhoto.closestRatio === 2)
                     h = 105;
-                else if (originalPhoto.closestRatio == 1 / 3 || originalPhoto.closestRatio == 3)
+                else if (originalPhoto.closestRatio === 1 / 3 || originalPhoto.closestRatio === 3)
                     h = 70;
                 break;
         }
@@ -187,7 +200,7 @@ function resize() {
 
     $resizeCanvas.clearCanvas();
 
-    if (originalPhoto.orientation == 'portrait') {
+    if (originalPhoto.orientation === 'portrait') {
         resizeCanvas.width = MAX_PREVIEW_SIZE * originalPhoto.ratio;
         resizeCanvas.height = MAX_PREVIEW_SIZE;
         $resizeCanvas
@@ -199,7 +212,7 @@ function resize() {
                 height: MAX_PREVIEW_SIZE,
                 fromCenter: false
             });
-    } else if (originalPhoto.orientation == 'landscape') {
+    } else if (originalPhoto.orientation === 'landscape') {
         resizeCanvas.width = MAX_PREVIEW_SIZE;
         resizeCanvas.height = MAX_PREVIEW_SIZE / originalPhoto.ratio;
         $resizeCanvas
@@ -224,18 +237,10 @@ function resize() {
                 fromCenter: false
             });
     }
-
-    editedPhoto.src = $resizeCanvas.getCanvasImage();
-    $preview
-        .attr('src', editedPhoto.src)
-        .one('load', function() {
-            $preview
-                .width(preview.naturalWidth)
-                .height(preview.naturalHeight)
-                .css({ 'margin-top': 200 - (preview.naturalHeight / 2) + 'px' });
-        });
-
-    drawPreview();
+    var src = $resizeCanvas.getCanvasImage();
+    $smallPhoto
+        .attr('src', src)
+        .one('load', drawPreview);
 }
 
 // Applies filters to the preview image
@@ -252,30 +257,76 @@ function filter(event) {
 }
 
 function drawPreview() {
-    $previewCanvas
-        .drawImage({
-            source: 'images/bckgr.jpg',
-            x: 0,
-            y: 0,
-            fromCenter: false
-        })
-        .drawImage({
-            source: editedPhoto.src,
-            x: 250,
-            y: 175,
+    preview.$canvas.drawImage({
+        source: 'images/bckgr.jpg',
+        x: 0,
+        y: 0,
+        fromCenter: false
+    });
+    if (preview.layout.divs === 0) {
+        preview.$canvas.drawImage({
+            source: smallPhoto.src,
+            x: preview.photoPositionX,
+            y: preview.photoPositionY,
             width: originalPhoto.maxWidth * MM_TO_PX,
             height: originalPhoto.maxHeight * MM_TO_PX,
             shadowColor: '#1a1a1a',
             shadowBlur: 3,
             shadowY: 2
         });
-}
-
-function setLayout(orientation, numberOfDivs = 0) {
-    if (orientation == 'V') {
-        // if(maxWidth / 2 > )
+    } else {
+        var totalWidth;
+        var totalHeight;
+        var startPoint;
+        if (preview.layout.orientation === 'V') {
+            totalWidth = originalPhoto.maxWidth * MM_TO_PX + preview.layout.divs * 10;
+            startPoint = preview.photoPositionX - totalWidth / 2 + totalWidth / (preview.layout.divs * 2);
+            for (var i = 0; i < preview.layout.divs; i++) {
+                preview.$canvas.drawImage({
+                    source: smallPhoto.src,
+                    x: startPoint + totalWidth * (i / preview.layout.divs),
+                    y: preview.photoPositionY,
+                    width: originalPhoto.maxWidth * MM_TO_PX / preview.layout.divs,
+                    height: originalPhoto.maxHeight * MM_TO_PX,
+                    sWidth: smallPhoto.width / preview.layout.divs,
+                    sHeight: smallPhoto.height,
+                    sx: (smallPhoto.width / (preview.layout.divs)) * i,
+                    sy: smallPhoto.height / 2,
+                    shadowColor: '#1a1a1a',
+                    shadowBlur: 3,
+                    shadowY: 2
+                });
+            }
+        } else if (preview.layout.orientation === 'H') {
+            totalHeight = originalPhoto.maxHeight * MM_TO_PX + preview.layout.divs * 10;
+            startPoint = preview.photoPositionY - totalHeight / 2 + totalHeight / (preview.layout.divs * 2);
+            for (var i = 0; i < preview.layout.divs; i++) {
+                preview.$canvas.drawImage({
+                    source: smallPhoto.src,
+                    y: startPoint + totalHeight * (i / preview.layout.divs),
+                    x: preview.photoPositionX,
+                    width: originalPhoto.maxWidth * MM_TO_PX,
+                    height: originalPhoto.maxHeight * MM_TO_PX / preview.layout.divs,
+                    sWidth: smallPhoto.width,
+                    sHeight: smallPhoto.height / preview.layout.divs,
+                    sx: smallPhoto.width / 2,
+                    sy: (smallPhoto.height / (preview.layout.divs)) * i,
+                    shadowColor: '#1a1a1a',
+                    shadowBlur: 3,
+                    shadowY: 2
+                });
+            }
+        }
     }
 }
+
+function setLayout(orientation, divs) {
+    preview.layout.divs = divs;
+    preview.layout.orientation = orientation;
+    drawPreview();
+}
+
+
 
 /*$('#previewDiv').tilt({
     perspective: 1000,

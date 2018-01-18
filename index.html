@@ -62,16 +62,17 @@
             </div>
         </div>
         <div class="w3-quarter w3-cell-middle">
-            <img src="icons/normal.svg" alt="Diptico Vertical" height="100" width="100" class="imageLayout" id="normal" onclick="setLayout('N')">
-            <img src="icons/dipticV.svg" alt="Diptico Vertical" height="100" width="100" class="imageLayout" id="dipV" onclick="setLayout('V', 1)" style="display: none;">
-            <img src="icons/dipticH.svg" alt="Diptico Horizontal" height="100" width="100" class="imageLayout" id="dipH" onclick="setLayout('H', 1)" style="display: none;">
-            <img src="icons/tripticV.svg" alt="Triptico Vertical" height="100" width="100" class="imageLayout" id="triV" onclick="setLayout('V', 2)" style="display: none;">
-            <img src="icons/tripticH.svg" alt="Triptico Horizontal" height="100" width="100" class="imageLayout" id="triH" onclick="setLayout('H', 2)" style="display: none;">
+            <img src="icons/normal.svg" alt="Diptico Vertical" height="100" width="100" class="imageLayout" id="normal" onclick="setLayout('N', 0)">
+            <img src="icons/dipticV.svg" alt="Diptico Vertical" height="100" width="100" class="imageLayout" id="dipV" onclick="setLayout('V', 2)" style="display: none;">
+            <img src="icons/dipticH.svg" alt="Diptico Horizontal" height="100" width="100" class="imageLayout" id="dipH" onclick="setLayout('H', 2)" style="display: none;">
+            <img src="icons/tripticV.svg" alt="Triptico Vertical" height="100" width="100" class="imageLayout" id="triV" onclick="setLayout('V', 3)" style="display: none;">
+            <img src="icons/tripticH.svg" alt="Triptico Horizontal" height="100" width="100" class="imageLayout" id="triH" onclick="setLayout('H', 3)" style="display: none;">
         </div>
     </div>
-    <div>
-        <canvas id="filters" style="display: none;"></canvas>
-        <canvas id="resize" style="display: none;"></canvas>
+    <div style="display: none;">
+        <canvas id="filters"></canvas>
+        <canvas id="resize"></canvas>
+        <img src="" id="smallPhoto">
     </div>
     <div id="test">
     </div>
