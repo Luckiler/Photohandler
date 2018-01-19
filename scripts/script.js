@@ -32,7 +32,9 @@ var preview = {
 
     layout: {
         orientation: 'none',
-        divs: 0
+        divs: 0,
+        width: 0,
+        height: 0,
     }
 };
 
@@ -51,7 +53,11 @@ function loadImage(input) {
         var fr = new FileReader();
         fr.onload = function() {
             originalPhoto.photo.src = fr.result;
-            $(originalPhoto.photo).one('load', analysePhoto);
+            $(originalPhoto.photo).one('load', function() {
+                analysePhoto();
+                resize();
+                updateGUI();
+            });
         };
         fr.readAsDataURL(input.files[0]);
     }
@@ -74,11 +80,6 @@ function analysePhoto() {
 
     originalPhoto.maxHeight = Math.round((originalPhoto.photo.naturalHeight * INCH) / DPI);
     originalPhoto.maxWidth = Math.round((originalPhoto.photo.naturalWidth * INCH) / DPI);
-
-    originalPhoto.maxDivisionsV = originalPhoto.maxWidth / 300 - 1;
-    originalPhoto.maxDivisionsH = originalPhoto.maxHeight / 300 - 1;
-
-    updateGUI();
 }
 
 function updateGUI() {
@@ -87,10 +88,10 @@ function updateGUI() {
 
     $('#maxSize').text(originalPhoto.maxWidth + 'x' + originalPhoto.maxHeight + 'mm');
 
-    if (originalPhoto.maxDivisionsV < 1) {
+    if ((originalPhoto.maxWidth / 300 - 1) < 1) {
         $('#dipV').css('display', 'none');
         $('#triV').css('display', 'none');
-    } else if (originalPhoto.maxDivisionsV < 2) {
+    } else if ((originalPhoto.maxWidth / 300 - 1) < 2) {
         $('#dipV').css('display', 'inline-block');
         $('#triV').css('display', 'none');
     } else {
@@ -98,10 +99,10 @@ function updateGUI() {
         $('#triV').css('display', 'inline-block');
     }
 
-    if (originalPhoto.maxDivisionsH < 1) {
+    if ((originalPhoto.maxHeight / 300 - 1) < 1) {
         $('#dipH').css('display', 'none');
         $('#triH').css('display', 'none');
-    } else if (originalPhoto.maxDivisionsH < 2) {
+    } else if ((originalPhoto.maxHeight / 300 - 1) < 2) {
         $('#dipH').css('display', 'inline-block');
         $('#triH').css('display', 'none');
     } else {
@@ -128,11 +129,10 @@ function updateGUI() {
             break;
     }
 
-    recomendSize();
-    resize();
+    recomendSizeGUI();
 }
 
-function recomendSize() {
+function recomendSizeGUI() {
     $rz = $('#recommendedSizes');
     $rz.empty();
 
@@ -142,55 +142,60 @@ function recomendSize() {
 
         switch (s) {
             case 'EDIÇAO ESPECIAL':
-                h = 30;
+                h = 300;
                 break;
             case 'P':
-                h = 45;
+                h = 450;
                 break;
             case 'M':
-                h = 60;
+                h = 600;
                 break;
             case 'G':
                 if (originalPhoto.closestRatio === 2 / 3 || originalPhoto.closestRatio === 3 / 2)
-                    h = 80;
+                    h = 800;
                 else
-                    h = 90;
+                    h = 900;
                 break;
             case 'GG':
                 if (originalPhoto.closestRatio !== 2 / 3 || originalPhoto.closestRatio !== 3 / 2)
                     display = false;
-                h = 100;
+                h = 1000;
                 break;
             case 'COLECIONADOR':
                 if (originalPhoto.closestRatio === 2 / 3 || originalPhoto.closestRatio === 3 / 2 || originalPhoto.closestRatio === 1)
-                    h = 120;
+                    h = 1200;
                 else if (originalPhoto.closestRatio === 1 / 2 || originalPhoto.closestRatio === 2)
-                    h = 105;
+                    h = 1050;
                 else if (originalPhoto.closestRatio === 1 / 3 || originalPhoto.closestRatio === 3)
-                    h = 70;
+                    h = 700;
                 break;
         }
 
         if (display) {
+            var text;
+            var funcValues;
             if (originalPhoto.closestRatio >= 1) {
                 w = h * originalPhoto.closestRatio;
-                if (originalPhoto.maxHeight / 10 >= h && originalPhoto.maxWidth / 10 >= w)
+                if (originalPhoto.maxHeight >= h && originalPhoto.maxWidth >= w)
                     color = 'green';
-                else if (originalPhoto.maxHeight / 10 >= h || originalPhoto.maxWidth / 10 >= w)
+                else if (originalPhoto.maxHeight >= h || originalPhoto.maxWidth >= w)
                     color = 'orange';
                 else
                     color = 'red';
-                $rz.append('<div class="w3-cell"><div class = "w3-container w3-margin w3-' + color + '">' + s + ' ' + w + 'x' + h + 'cm</div></div>');
+                text = s + ' ' + w / 10 + 'x' + h / 10 + 'cm';
+                funcValues = w + ',' + h;
             } else {
                 w = h / originalPhoto.closestRatio;
-                if (originalPhoto.maxWidth / 10 >= h && originalPhoto.maxHeight / 10 >= w)
+                if (originalPhoto.maxWidth >= h && originalPhoto.maxHeight >= w)
                     color = 'green';
-                else if (originalPhoto.maxWidth / 10 >= h || originalPhoto.maxHeight / 10 >= w)
+                else if (originalPhoto.maxWidth >= h || originalPhoto.maxHeight >= w)
                     color = 'orange';
                 else
                     color = 'red';
-                $rz.append('<div class="w3-cell"><div class = "w3-container w3-margin w3-' + color + '">' + s + ' ' + h + 'x' + w + 'cm</div></div>');
+                text = s + ' ' + h / 10 + 'x' + w / 10 + 'cm';
+                funcValues = h + ',' + w;
             }
+            $rz.append('<div class="w3-cell"><div class = "w3-container w3-margin w3-' + color + '" onclick="selectFormat(' + funcValues + ')">' + text + '</div></div>');
         }
     }
 }
@@ -248,6 +253,17 @@ function resize() {
     preview.$canvas.removeClass('hidden');
 }
 
+function setFormat(width, height) {
+    preview.layout.width = width;
+    preview.layout.height = height;
+}
+
+function selectFormat(width, height) {
+    setFormat(width, height);
+    drawPreview();
+    updateGUI();
+}
+
 // Applies filters to the preview image
 function filter(event) {
     Caman(filters, editedPhoto.src, function() {
@@ -261,6 +277,7 @@ function filter(event) {
     });
 }
 
+// TODO Crop picture, not deform
 function drawPreview() {
     preview.$canvas.drawImage({
         source: 'images/bckgr.jpg',
@@ -273,8 +290,8 @@ function drawPreview() {
             source: smallPhoto.src,
             x: preview.photoPositionX,
             y: preview.photoPositionY,
-            width: originalPhoto.maxWidth * MM_TO_PX,
-            height: originalPhoto.maxHeight * MM_TO_PX,
+            width: preview.layout.width * MM_TO_PX,
+            height: preview.layout.height * MM_TO_PX,
             shadowColor: '#1a1a1a',
             shadowBlur: 3,
             shadowY: 2
@@ -284,15 +301,15 @@ function drawPreview() {
         var totalHeight;
         var startPoint;
         if (preview.layout.orientation === 'V') {
-            totalWidth = originalPhoto.maxWidth * MM_TO_PX + preview.layout.divs * 10;
+            totalWidth = preview.layout.width * MM_TO_PX + preview.layout.divs * 10;
             startPoint = preview.photoPositionX - totalWidth / 2 + totalWidth / (preview.layout.divs * 2);
             for (var i = 0; i < preview.layout.divs; i++) {
                 preview.$canvas.drawImage({
                     source: smallPhoto.src,
                     x: startPoint + totalWidth * (i / preview.layout.divs),
                     y: preview.photoPositionY,
-                    width: originalPhoto.maxWidth * MM_TO_PX / preview.layout.divs,
-                    height: originalPhoto.maxHeight * MM_TO_PX,
+                    width: preview.layout.width * MM_TO_PX / preview.layout.divs,
+                    height: preview.layout.height * MM_TO_PX,
                     sWidth: smallPhoto.width / preview.layout.divs,
                     sHeight: smallPhoto.height,
                     sx: (smallPhoto.width / (preview.layout.divs)) * i,
@@ -303,15 +320,15 @@ function drawPreview() {
                 });
             }
         } else if (preview.layout.orientation === 'H') {
-            totalHeight = originalPhoto.maxHeight * MM_TO_PX + preview.layout.divs * 10;
+            totalHeight = preview.layout.height * MM_TO_PX + preview.layout.divs * 10;
             startPoint = preview.photoPositionY - totalHeight / 2 + totalHeight / (preview.layout.divs * 2);
             for (var i = 0; i < preview.layout.divs; i++) {
                 preview.$canvas.drawImage({
                     source: smallPhoto.src,
                     y: startPoint + totalHeight * (i / preview.layout.divs),
                     x: preview.photoPositionX,
-                    width: originalPhoto.maxWidth * MM_TO_PX,
-                    height: originalPhoto.maxHeight * MM_TO_PX / preview.layout.divs,
+                    width: preview.layout.width * MM_TO_PX,
+                    height: preview.layout.height * MM_TO_PX / preview.layout.divs,
                     sWidth: smallPhoto.width,
                     sHeight: smallPhoto.height / preview.layout.divs,
                     sx: smallPhoto.width / 2,
