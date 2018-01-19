@@ -45,6 +45,8 @@ const MM_TO_PX = 450 / 2000;
 
 // Handles the image loading into the memory
 function loadImage(input) {
+    $('#loading').removeClass('hidden');
+    preview.$canvas.addClass('hidden');
     if (FileReader && input.files && input.files.length) {
         var fr = new FileReader();
         fr.onload = function() {
@@ -241,6 +243,9 @@ function resize() {
     $smallPhoto
         .attr('src', src)
         .one('load', drawPreview);
+
+    $('#loading').addClass('hidden');
+    preview.$canvas.removeClass('hidden');
 }
 
 // Applies filters to the preview image
