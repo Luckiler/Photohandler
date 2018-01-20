@@ -56,6 +56,7 @@ function loadImage(input) {
             $(originalPhoto.photo).one('load', function() {
                 analysePhoto();
                 resize();
+                recomendSizeGUI();
                 updateGUI();
             });
         };
@@ -129,7 +130,10 @@ function updateGUI() {
             break;
     }
 
-    recomendSizeGUI();
+
+    $('.formatButton').removeClass('w3-card-4').css("transform", "scale(1)");
+    var selector = '#f' + preview.layout.width + '' + preview.layout.height;
+    $(selector).addClass('w3-card-4').css("transform", "scale(1.05)");
 }
 
 function recomendSizeGUI() {
@@ -153,6 +157,8 @@ function recomendSizeGUI() {
             case 'G':
                 if (originalPhoto.closestRatio === 2 / 3 || originalPhoto.closestRatio === 3 / 2)
                     h = 800;
+                else if (originalPhoto.closestRatio === 1 / 3 || originalPhoto.closestRatio === 3)
+                    display = false;
                 else
                     h = 900;
                 break;
@@ -174,28 +180,33 @@ function recomendSizeGUI() {
         if (display) {
             var text;
             var funcValues;
+            var idValues;
             if (originalPhoto.closestRatio >= 1) {
                 w = h * originalPhoto.closestRatio;
-                if (originalPhoto.maxHeight >= h && originalPhoto.maxWidth >= w)
+                if (originalPhoto.maxHeight >= h && originalPhoto.maxWidth >= w) {
                     color = 'green';
-                else if (originalPhoto.maxHeight >= h || originalPhoto.maxWidth >= w)
+                    setFormat(w, h);
+                } else if (originalPhoto.maxHeight >= h || originalPhoto.maxWidth >= w)
                     color = 'orange';
                 else
                     color = 'red';
-                text = s + ' ' + w / 10 + 'x' + h / 10 + 'cm';
+                text = w / 10 + 'x' + h / 10 + 'cm';
                 funcValues = w + ',' + h;
+                idValues = w + '' + h;
             } else {
                 w = h / originalPhoto.closestRatio;
-                if (originalPhoto.maxWidth >= h && originalPhoto.maxHeight >= w)
+                if (originalPhoto.maxWidth >= h && originalPhoto.maxHeight >= w) {
                     color = 'green';
-                else if (originalPhoto.maxWidth >= h || originalPhoto.maxHeight >= w)
+                    setFormat(h, w);
+                } else if (originalPhoto.maxWidth >= h || originalPhoto.maxHeight >= w)
                     color = 'orange';
                 else
                     color = 'red';
-                text = s + ' ' + h / 10 + 'x' + w / 10 + 'cm';
+                text = h / 10 + 'x' + w / 10 + 'cm';
                 funcValues = h + ',' + w;
+                idValues = h + '' + w;
             }
-            $rz.append('<div class="w3-cell"><div class = "w3-container w3-margin w3-' + color + '" onclick="selectFormat(' + funcValues + ')">' + text + '</div></div>');
+            $rz.append('<div class = "w3-container w3-margin w3-' + color + ' w3-border-theme formatButton" id="f' + idValues + '" onclick="selectFormat(' + funcValues + ')"><p><b>' + s + '</b></p><p>' + text + '</div>');
         }
     }
 }
